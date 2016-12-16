@@ -1,0 +1,210 @@
+{
+    "edges": [
+              {
+              "attributes": {},
+              "color": "",
+              "id": "0",
+              "label": "edge1",
+              "size": 1.0,
+              "source": "0",
+              "target": "1",
+              "type": "arrow"
+              },
+              {
+              "attributes": {
+              "EdgeType": ""
+              },
+              "color": "",
+              "id": "4",
+              "label": "edge4",
+              "size": 1.0,
+              "source": "2",
+              "target": "4",
+              "type": ""
+              },
+              {
+              "attributes": {},
+              "color": "",
+              "id": "2",
+              "label": "edge2",
+              "size": 1.0,
+              "source": "0",
+              "target": "2",
+              "type": "arrow"
+              },
+              {
+              "attributes": {
+              "EdgeType": ""
+              },
+              "color": "",
+              "id": "10",
+              "label": "edge10",
+              "size": 1.0,
+              "source": "7",
+              "target": "9",
+              "type": ""
+              },
+              {
+              "attributes": {
+              "EdgeType": ""
+              },
+              "color": "",
+              "id": "11",
+              "label": "edge7",
+              "size": 1.0,
+              "source": "3",
+              "target": "7",
+              "type": ""
+              },
+              {
+              "attributes": {
+              "EdgeType": ""
+              },
+              "color": "",
+              "id": "9",
+              "label": "edge9",
+              "size": 1.0,
+              "source": "7",
+              "target": "8",
+              "type": ""
+              },
+              {
+              "attributes": {
+              "EdgeType": ""
+              },
+              "color": "",
+              "id": "5",
+              "label": "edge5",
+              "size": 1.0,
+              "source": "2",
+              "target": "5",
+              "type": ""
+              },
+              {
+              "attributes": {
+              "EdgeType": ""
+              },
+              "color": "",
+              "id": "6",
+              "label": "edge6",
+              "size": 1.0,
+              "source": "2",
+              "target": "6",
+              "type": ""
+              },
+              {
+              "attributes": {
+              "EdgeType": ""
+              },
+              "color": "",
+              "id": "8",
+              "label": "edge8",
+              "size": 1.0,
+              "source": "7",
+              "target": "8",
+              "type": ""
+              },
+              {
+              "attributes": {},
+              "color": "",
+              "id": "3",
+              "label": "edge3",
+              "size": 1.0,
+              "source": "0",
+              "target": "3",
+              "type": "arrow"
+              }
+              ],
+    "nodes": [
+              {
+              "attributes": {},
+              "color": "rgb(102,204,255)",
+              "id": "6",
+              "label": "nodo7",
+              "size": 10.0,
+              "x": 17.558683395385742,
+              "y": -114.27946472167969
+              },
+              {
+              "attributes": {},
+              "color": "rgb(0,255,51)",
+              "id": "7",
+              "label": "nodo8",
+              "size": 10.0,
+              "x": -184.01792907714844,
+              "y": -133.7150115966797
+              },
+              {
+              "attributes": {},
+              "color": "rgb(102,204,255)",
+              "id": "5",
+              "label": "nodo6",
+              "size": 10.0,
+              "x": 111.18421936035156,
+              "y": -134.6471405029297
+              },
+              {
+              "attributes": {},
+              "color": "rgb(255,0,0)",
+              "id": "1",
+              "label": "nodo2",
+              "size": 10.0,
+              "x": 257.2911682128906,
+              "y": 189.1810760498047
+              },
+              {
+              "attributes": {},
+              "color": "rgb(0,255,51)",
+              "id": "8",
+              "label": "nodo9",
+              "size": 10.0,
+              "x": 179.65585327148438,
+              "y": -154.2679443359375
+              },
+              {
+              "attributes": {},
+              "color": "rgb(255,0,0)",
+              "id": "2",
+              "label": "nodo3",
+              "size": 10.0,
+              "x": -137.9130401611328,
+              "y": 7.046560764312744
+              },
+              {
+              "attributes": {},
+              "color": "rgb(102,204,255)",
+              "id": "4",
+              "label": "nodo5",
+              "size": 10.0,
+              "x": 59.460391998291016,
+              "y": -13.55090045928955
+              },
+              {
+              "attributes": {},
+              "color": "rgb(0,255,51)",
+              "id": "9",
+              "label": "nodo10",
+              "size": 10.0,
+              "x": 96.78163146972656,
+              "y": -145.3716583251953
+              },
+              {
+              "attributes": {},
+              "color": "rgb(102,204,255)",
+              "id": "3",
+              "label": "nodo4",
+              "size": 10.0,
+              "x": -13.510702133178711,
+              "y": -41.70353698730469
+              },
+              {
+              "attributes": {},
+              "color": "rgb(255,0,0)",
+              "id": "0",
+              "label": "nodo1",
+              "size": 10.0,
+              "x": -226.8690948486328,
+              "y": -11.569040298461914
+              }
+              ]
+}

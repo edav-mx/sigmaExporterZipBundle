@@ -1,7 +1,7 @@
 {
   "type": "network",
   "version": "2.0",
-  "data": "data.json",
+  "data": "dataTest.json",
   "logo": {
     "file": "",
     "link": "",
