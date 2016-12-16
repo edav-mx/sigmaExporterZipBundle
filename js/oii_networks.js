@@ -22,18 +22,46 @@ $( document ).ready(function() {
 	// Add a method to the graph model that returns an
 	// object with every neighbors of a node inside:
 	sigma.classes.graph.addMethod('neighbors', function(nodeId) {
-		var k,
+		var k, kOut, kIn,
 			neighbors = {},
 			index = this.allNeighborsIndex[nodeId] || {};
 	
-		for (k in index)
-		  neighbors[k] = this.nodesIndex[k];
+        var indexOut = this.outNeighborsIndex[nodeId];
+        //var indexIn = this.inNeighborsIndex[nodeId];
+                                  
+        for (k in index) {
+		    neighbors[k] = this.nodesIndex[k];
+            var connectionType = "Incoming";
+            
+            for (kOut in indexOut) {
+                if(kOut == neighbors[k].id) {
+                    connectionType = "Outgoing";
+                    break;
+                }
+            }
+                                  
+            neighbors[k]["connectionType"] = connectionType;
+            /*
+             // TODO - check also incoming to enable mutual
+             for (kIn in indexIn) {
+                if(indexIn[kIn].id == neighbors[k].id) {
+                    neighbors[k].in = true;
+                    break;
+                }
+            } */
+        }
 
 		return neighbors;
 	});
+                    
+    
 
 	function graph_setup(s) {
 		console.log("Setting up the graph");
+        
+        var groupByDirection=false;
+        if (oii.config.informationPanel.groupByEdgeDirection && oii.config.informationPanel.groupByEdgeDirection==true)	groupByDirection=true;
+                    
 		// We first need to save the original colors of our
 		// nodes and edges, like this:
 		s.clusters={};
@@ -48,6 +76,7 @@ $( document ).ready(function() {
 		s.graph.edges().forEach(function(e) {
 			e.originalColor = e.color;
 		});
+        
 
 		// When a node is clicked, we check for each node
 		// if it is a neighbor of the clicked one. If not,
@@ -72,6 +101,8 @@ $( document ).ready(function() {
 			toKeep[nodeId] = true; //SAH -- example code had entire node object here
 			
 			var neighbors=new Array(toKeep.length);
+            var neighborsIn=new Array();
+            var neighborsOut=new Array();
 			var nodeObj=false;
 
 			s.graph.nodes().forEach(function(n) {
@@ -83,7 +114,17 @@ $( document ).ready(function() {
 						nodeObj=n;
 					} else {
 						//TODO: separate out direction of links if specificed in config (incoming, outgoing, mutual)
-						neighbors.push('<li class="node" data-id="'+n.id+'"><a href="javascript:void(0);">'+n.label+'</a></li>');
+                        if(groupByDirection) {
+                            if(n.connectionType == "Incoming") {
+                                neighborsIn.push('<li class="node" data-id="'+n.id+'"><a href="javascript:void(0);">'+n.label+'</a></li>');
+                            }
+                            else {
+                                neighborsOut.push('<li class="node" data-id="'+n.id+'"><a href="javascript:void(0);">'+n.label+'</a></li>');
+                            }
+                        } else {
+                            neighbors.push('<li class="node" data-id="'+n.id+'"><a href="javascript:void(0);">'+n.label+'</a></li>');
+                        }
+						
 					}
 				} else {
 					unemph(n);
@@ -112,7 +153,27 @@ $( document ).ready(function() {
 			//Populate attributepane
 			var pane = $("#attributepane");
 			pane.find(".headertext").html("Node details");
-			pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl><h2>Neighbors</h2><ul>"+neighbors.join("")+"</ul>");
+            if(groupByDirection) {
+                    pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl>");
+                    
+                    if(neighborsIn.length > 0) {
+                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><ul>"+neighborsIn.join("")+"</ul>");
+                    }
+                    else {
+                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><div>No incoming links</div>");
+                    }
+                    pane.find(".bodytext").html(pane.find(".bodytext").html() + "<div>&nbsp;</div>");
+                    if(neighborsOut.length > 0) {
+                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><ul>"+neighborsOut.join("")+"</ul>");
+                    }
+                    else {
+                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><div>No outgoing links</div>");
+                    }
+            }
+            else {
+                pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl><h2>Neighbors</h2><ul>"+neighbors.join("")+"</ul>");
+            }
+			
 			pane.delay(400).animate({width:'show'},350);
 	
 			$(".node").click(function() {
