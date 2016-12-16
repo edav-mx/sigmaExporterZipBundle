@@ -722,7 +722,7 @@
   /**
    * The current version of sigma:
    */
-  sigma.version = '1.0.3';
+  sigma.version = '1.2.0';
 
 
 
@@ -1321,7 +1321,7 @@
   /**
    * Kills one or more jobs, indicated by their ids. It is only possible to
    * kill running jobs or waiting jobs. If you try to kill a job that does not
-   * exists or that is already killed, a warning will be thrown.
+   * exist or that is already killed, a warning will be thrown.
    *
    * @param  {Array|String} v1 A string job id or an array of job ids.
    * @return {Object}       Returns conrad.
@@ -1466,7 +1466,7 @@
   }
 
   /**
-   * Unreference every jobs that are stored in the _doneJobs object. It will
+   * Unreference every job that is stored in the _doneJobs object. It will
    * not be possible anymore to get stats about these jobs, but it will release
    * the memory.
    *
@@ -1730,11 +1730,11 @@ var sigma = this.sigma,
 sigma.conrad = conrad;
 
 // Dirty polyfills to permit sigma usage in node
-if (HTMLElement === undefined)
-  var HTMLElement = function() {};
+if (typeof HTMLElement === 'undefined')
+  HTMLElement = function() {};
 
-if (window === undefined)
-  var window = {
+if (typeof window === 'undefined')
+  window = {
     addEventListener: function() {}
   };
 
@@ -1865,41 +1865,56 @@ if (typeof exports !== 'undefined') {
    * returns an integer equal to "r * 255 * 255 + g * 255 + b", to gain some
    * memory in the data given to WebGL shaders.
    *
+   * Note that the function actually caches its results for better performance.
+   *
    * @param  {string} val The hexa or rgba color.
    * @return {number}     The number value.
    */
-  sigma.utils.floatColor = function(val) {
-    var result = [0, 0, 0];
+  var floatColorCache = {};
 
-    if (val.match(/^#/)) {
-      val = (val || '').replace(/^#/, '');
-      result = (val.length === 3) ?
-        [
-          parseInt(val.charAt(0) + val.charAt(0), 16),
-          parseInt(val.charAt(1) + val.charAt(1), 16),
-          parseInt(val.charAt(2) + val.charAt(2), 16)
-        ] :
-        [
-          parseInt(val.charAt(0) + val.charAt(1), 16),
-          parseInt(val.charAt(2) + val.charAt(3), 16),
-          parseInt(val.charAt(4) + val.charAt(5), 16)
-        ];
+  sigma.utils.floatColor = function(val) {
+
+    // Is the color already computed?
+    if (floatColorCache[val])
+      return floatColorCache[val];
+
+    var original = val,
+        r = 0,
+        g = 0,
+        b = 0;
+
+    if (val[0] === '#') {
+      val = val.slice(1);
+
+      if (val.length === 3) {
+        r = parseInt(val.charAt(0) + val.charAt(0), 16);
+        g = parseInt(val.charAt(1) + val.charAt(1), 16);
+        b = parseInt(val.charAt(2) + val.charAt(2), 16);
+      }
+      else {
+        r = parseInt(val.charAt(0) + val.charAt(1), 16);
+        g = parseInt(val.charAt(2) + val.charAt(3), 16);
+        b = parseInt(val.charAt(4) + val.charAt(5), 16);
+      }
     } else if (val.match(/^ *rgba? *\(/)) {
       val = val.match(
         /^ *rgba? *\( *([0-9]*) *, *([0-9]*) *, *([0-9]*) *(,.*)?\) *$/
       );
-      result = [
-        +val[1],
-        +val[2],
-        +val[3]
-      ];
+      r = +val[1];
+      g = +val[2];
+      b = +val[3];
     }
 
-    return (
-      result[0] * 256 * 256 +
-      result[1] * 256 +
-      result[2]
+    var color = (
+      r * 256 * 256 +
+      g * 256 +
+      b
     );
+
+    // Caching the color
+    floatColorCache[original] = color;
+
+    return color;
   };
 
     /**
@@ -2337,6 +2352,24 @@ if (typeof exports !== 'undefined') {
   };
 
   /**
+   * The pixel ratio of the screen. Taking zoom into account
+   *
+   * @return {number}        Pixel ratio of the screen
+   */
+  sigma.utils.getPixelRatio = function() {
+    var ratio = 1;
+    if (window.screen.deviceXDPI !== undefined &&
+         window.screen.logicalXDPI !== undefined &&
+         window.screen.deviceXDPI > window.screen.logicalXDPI) {
+        ratio = window.screen.systemXDPI / window.screen.logicalXDPI;
+    }
+    else if (window.devicePixelRatio !== undefined) {
+        ratio = window.devicePixelRatio;
+    }
+    return ratio;
+  };
+
+  /**
    * Extract the width from a mouse or touch event.
    *
    * @param  {event}  e A mouse or touch event.
@@ -2351,6 +2384,45 @@ if (typeof exports !== 'undefined') {
       (typeof w === 'number' && w) ||
       (w !== undefined && w.baseVal !== undefined && w.baseVal.value)
     );
+  };
+
+  /**
+   * Extract the center from a mouse or touch event.
+   *
+   * @param  {event}  e A mouse or touch event.
+   * @return {object}   The center of the event's target.
+   */
+  sigma.utils.getCenter = function(e) {
+    var ratio = e.target.namespaceURI.indexOf('svg') !== -1 ? 1 :
+        sigma.utils.getPixelRatio();
+    return {
+      x: sigma.utils.getWidth(e) / (2 * ratio),
+      y: sigma.utils.getHeight(e) / (2 * ratio)
+    };
+  };
+
+  /**
+   * Convert mouse coords to sigma coords
+   *
+   * @param  {event}   e A mouse or touch event.
+   * @param  {number?} x The x coord to convert
+   * @param  {number?} x The y coord to convert
+   *
+   * @return {object}    The standardized event
+   */
+  sigma.utils.mouseCoords = function(e, x, y) {
+    x = x || sigma.utils.getX(e);
+    y = y || sigma.utils.getY(e);
+    return {
+        x: x - sigma.utils.getCenter(e).x,
+        y: y - sigma.utils.getCenter(e).y,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        ctrlKey: e.ctrlKey,
+        metaKey: e.metaKey,
+        altKey: e.altKey,
+        shiftKey: e.shiftKey
+    };
   };
 
   /**
@@ -4306,23 +4378,23 @@ if (typeof exports !== 'undefined') {
     var i,
         l,
         node,
-        cos = Math.cos(this.angle),
-        sin = Math.sin(this.angle),
+        relCos = Math.cos(this.angle) / this.ratio,
+        relSin = Math.sin(this.angle) / this.ratio,
         nodeRatio = Math.pow(this.ratio, this.settings('nodesPowRatio')),
-        edgeRatio = Math.pow(this.ratio, this.settings('edgesPowRatio'));
+        edgeRatio = Math.pow(this.ratio, this.settings('edgesPowRatio')),
+        xOffset = (options.width || 0) / 2 - this.x * relCos - this.y * relSin,
+        yOffset = (options.height || 0) / 2 - this.y * relCos + this.x * relSin;
 
     for (i = 0, l = nodes.length; i < l; i++) {
       node = nodes[i];
       node[write + 'x'] =
-        (
-          ((node[read + 'x'] || 0) - this.x) * cos +
-          ((node[read + 'y'] || 0) - this.y) * sin
-        ) / this.ratio + (options.width || 0) / 2;
+        (node[read + 'x'] || 0) * relCos +
+        (node[read + 'y'] || 0) * relSin +
+        xOffset;
       node[write + 'y'] =
-        (
-          ((node[read + 'y'] || 0) - this.y) * cos -
-          ((node[read + 'x'] || 0) - this.x) * sin
-        ) / this.ratio + (options.height || 0) / 2;
+        (node[read + 'y'] || 0) * relCos -
+        (node[read + 'x'] || 0) * relSin +
+        yOffset;
       node[write + 'size'] =
         (node[read + 'size'] || 0) /
         nodeRatio;
@@ -6052,58 +6124,51 @@ if (typeof exports !== 'undefined') {
           pos;
 
       // Dispatch event:
-      if (_settings('mouseEnabled'))
-        _self.dispatchEvent('mousemove', {
-          x: sigma.utils.getX(e) - sigma.utils.getWidth(e) / 2,
-          y: sigma.utils.getY(e) - sigma.utils.getHeight(e) / 2,
-          clientX: e.clientX,
-          clientY: e.clientY,
-          ctrlKey: e.ctrlKey,
-          metaKey: e.metaKey,
-          altKey: e.altKey,
-          shiftKey: e.shiftKey
-        });
+      if (_settings('mouseEnabled')) {
+        _self.dispatchEvent('mousemove',
+          sigma.utils.mouseCoords(e));
 
-      if (_settings('mouseEnabled') && _isMouseDown) {
-        _isMoving = true;
-        _hasDragged = true;
+        if (_isMouseDown) {
+          _isMoving = true;
+          _hasDragged = true;
 
-        if (_movingTimeoutId)
-          clearTimeout(_movingTimeoutId);
+          if (_movingTimeoutId)
+            clearTimeout(_movingTimeoutId);
 
-        _movingTimeoutId = setTimeout(function() {
-          _isMoving = false;
-        }, _settings('dragTimeout'));
+          _movingTimeoutId = setTimeout(function() {
+            _isMoving = false;
+          }, _settings('dragTimeout'));
 
-        sigma.misc.animation.killAll(_camera);
+          sigma.misc.animation.killAll(_camera);
 
-        _camera.isMoving = true;
-        pos = _camera.cameraPosition(
-          sigma.utils.getX(e) - _startMouseX,
-          sigma.utils.getY(e) - _startMouseY,
-          true
-        );
+          _camera.isMoving = true;
+          pos = _camera.cameraPosition(
+            sigma.utils.getX(e) - _startMouseX,
+            sigma.utils.getY(e) - _startMouseY,
+            true
+          );
 
-        x = _startCameraX - pos.x;
-        y = _startCameraY - pos.y;
+          x = _startCameraX - pos.x;
+          y = _startCameraY - pos.y;
 
-        if (x !== _camera.x || y !== _camera.y) {
-          _lastCameraX = _camera.x;
-          _lastCameraY = _camera.y;
+          if (x !== _camera.x || y !== _camera.y) {
+            _lastCameraX = _camera.x;
+            _lastCameraY = _camera.y;
 
-          _camera.goTo({
-            x: x,
-            y: y
-          });
+            _camera.goTo({
+              x: x,
+              y: y
+            });
+          }
+
+          if (e.preventDefault)
+            e.preventDefault();
+          else
+            e.returnValue = false;
+
+          e.stopPropagation();
+          return false;
         }
-
-        if (e.preventDefault)
-          e.preventDefault();
-        else
-          e.returnValue = false;
-
-        e.stopPropagation();
-        return false;
       }
     }
 
@@ -6148,16 +6213,8 @@ if (typeof exports !== 'undefined') {
             y: _camera.y
           });
 
-        _self.dispatchEvent('mouseup', {
-          x: x - sigma.utils.getWidth(e) / 2,
-          y: y - sigma.utils.getHeight(e) / 2,
-          clientX: e.clientX,
-          clientY: e.clientY,
-          ctrlKey: e.ctrlKey,
-          metaKey: e.metaKey,
-          altKey: e.altKey,
-          shiftKey: e.shiftKey
-        });
+        _self.dispatchEvent('mouseup',
+          sigma.utils.mouseCoords(e));
 
         // Update _isMoving flag:
         _isMoving = false;
@@ -6191,32 +6248,16 @@ if (typeof exports !== 'undefined') {
             break;
           case 3:
             // Right mouse button pressed
-            _self.dispatchEvent('rightclick', {
-              x: _startMouseX - sigma.utils.getWidth(e) / 2,
-              y: _startMouseY - sigma.utils.getHeight(e) / 2,
-              clientX: e.clientX,
-              clientY: e.clientY,
-              ctrlKey: e.ctrlKey,
-              metaKey: e.metaKey,
-              altKey: e.altKey,
-              shiftKey: e.shiftKey
-            });
+            _self.dispatchEvent('rightclick',
+              sigma.utils.mouseCoords(e, _startMouseX, _startMouseY));
             break;
           // case 1:
           default:
             // Left mouse button pressed
             _isMouseDown = true;
 
-            _self.dispatchEvent('mousedown', {
-              x: _startMouseX - sigma.utils.getWidth(e) / 2,
-              y: _startMouseY - sigma.utils.getHeight(e) / 2,
-              clientX: e.clientX,
-              clientY: e.clientY,
-              ctrlKey: e.ctrlKey,
-              metaKey: e.metaKey,
-              altKey: e.altKey,
-              shiftKey: e.shiftKey
-            });
+            _self.dispatchEvent('mousedown',
+              sigma.utils.mouseCoords(e, _startMouseX, _startMouseY));
         }
       }
     }
@@ -6239,20 +6280,12 @@ if (typeof exports !== 'undefined') {
      * @param {event} e A mouse event.
      */
     function _clickHandler(e) {
-      if (_settings('mouseEnabled'))
-        _self.dispatchEvent('click', {
-          x: sigma.utils.getX(e) - sigma.utils.getWidth(e) / 2,
-          y: sigma.utils.getY(e) - sigma.utils.getHeight(e) / 2,
-          clientX: e.clientX,
-          clientY: e.clientY,
-          ctrlKey: e.ctrlKey,
-          metaKey: e.metaKey,
-          altKey: e.altKey,
-          shiftKey: e.shiftKey,
-          isDragging:
-            (((new Date()).getTime() - _downStartTime) > 100) &&
-            _hasDragged
-        });
+      if (_settings('mouseEnabled')) {
+        var event = sigma.utils.mouseCoords(e);
+        event.isDragging =
+          (((new Date()).getTime() - _downStartTime) > 100) && _hasDragged;
+        _self.dispatchEvent('click', event);
+      }
 
       if (e.preventDefault)
         e.preventDefault();
@@ -6277,21 +6310,13 @@ if (typeof exports !== 'undefined') {
       if (_settings('mouseEnabled')) {
         ratio = 1 / _settings('doubleClickZoomingRatio');
 
-        _self.dispatchEvent('doubleclick', {
-          x: _startMouseX - sigma.utils.getWidth(e) / 2,
-          y: _startMouseY - sigma.utils.getHeight(e) / 2,
-          clientX: e.clientX,
-          clientY: e.clientY,
-          ctrlKey: e.ctrlKey,
-          metaKey: e.metaKey,
-          altKey: e.altKey,
-          shiftKey: e.shiftKey
-        });
+        _self.dispatchEvent('doubleclick',
+            sigma.utils.mouseCoords(e, _startMouseX, _startMouseY));
 
         if (_settings('doubleClickEnabled')) {
           pos = _camera.cameraPosition(
-            sigma.utils.getX(e) - sigma.utils.getWidth(e) / 2,
-            sigma.utils.getY(e) - sigma.utils.getHeight(e) / 2,
+            sigma.utils.getX(e) - sigma.utils.getCenter(e).x,
+            sigma.utils.getY(e) - sigma.utils.getCenter(e).y,
             true
           );
 
@@ -6321,16 +6346,17 @@ if (typeof exports !== 'undefined') {
     function _wheelHandler(e) {
       var pos,
           ratio,
-          animation;
+          animation,
+          wheelDelta = sigma.utils.getDelta(e);
 
-      if (_settings('mouseEnabled') && _settings('mouseWheelEnabled')) {
-        ratio = sigma.utils.getDelta(e) > 0 ?
+      if (_settings('mouseEnabled') && _settings('mouseWheelEnabled') && wheelDelta !== 0) {
+        ratio = wheelDelta > 0 ?
           1 / _settings('zoomingRatio') :
           _settings('zoomingRatio');
 
         pos = _camera.cameraPosition(
-          sigma.utils.getX(e) - sigma.utils.getWidth(e) / 2,
-          sigma.utils.getY(e) - sigma.utils.getHeight(e) / 2,
+          sigma.utils.getX(e) - sigma.utils.getCenter(e).x,
+          sigma.utils.getY(e) - sigma.utils.getCenter(e).y,
           true
         );
 
@@ -6427,9 +6453,6 @@ if (typeof exports !== 'undefined') {
       };
     }
 
-
-
-
     /**
      * This method unbinds every handlers that makes the captor work.
      */
@@ -6441,9 +6464,6 @@ if (typeof exports !== 'undefined') {
       _target.addEventListener('touchleave', _handleLeave);
       _target.addEventListener('touchmove', _handleMove);
     };
-
-
-
 
     // TOUCH EVENTS:
     // *************
@@ -6510,8 +6530,10 @@ if (typeof exports !== 'undefined') {
               _startTouchX1 - _startTouchX0
             );
             _startTouchDistance = Math.sqrt(
-              Math.pow(_startTouchY1 - _startTouchY0, 2) +
-              Math.pow(_startTouchX1 - _startTouchX0, 2)
+              (_startTouchY1 - _startTouchY0) *
+                (_startTouchY1 - _startTouchY0) +
+              (_startTouchX1 - _startTouchX0) *
+                (_startTouchX1 - _startTouchX0)
             );
 
             e.preventDefault();
@@ -6635,16 +6657,8 @@ if (typeof exports !== 'undefined') {
                 y: newStageY
               });
 
-              _self.dispatchEvent('mousemove', {
-                x: pos0.x - sigma.utils.getWidth(e) / 2,
-                y: pos0.y - sigma.utils.getHeight(e) / 2,
-                clientX: e.clientX,
-                clientY: e.clientY,
-                ctrlKey: e.ctrlKey,
-                metaKey: e.metaKey,
-                altKey: e.altKey,
-                shiftKey: e.shiftKey
-              });
+              _self.dispatchEvent('mousemove',
+                sigma.utils.mouseCoords(e, pos0.x, pos0.y));
 
               _self.dispatchEvent('drag');
             }
@@ -6659,20 +6673,20 @@ if (typeof exports !== 'undefined') {
 
             start = _camera.cameraPosition(
               (_startTouchX0 + _startTouchX1) / 2 -
-                sigma.utils.getWidth(e) / 2,
+                sigma.utils.getCenter(e).x,
               (_startTouchY0 + _startTouchY1) / 2 -
-                sigma.utils.getHeight(e) / 2,
+                sigma.utils.getCenter(e).y,
               true
             );
             end = _camera.cameraPosition(
-              (x0 + x1) / 2 - sigma.utils.getWidth(e) / 2,
-              (y0 + y1) / 2 - sigma.utils.getHeight(e) / 2,
+              (x0 + x1) / 2 - sigma.utils.getCenter(e).x,
+              (y0 + y1) / 2 - sigma.utils.getCenter(e).y,
               true
             );
 
             dAngle = Math.atan2(y1 - y0, x1 - x0) - _startTouchAngle;
             dRatio = Math.sqrt(
-              Math.pow(y1 - y0, 2) + Math.pow(x1 - x0, 2)
+              (y1 - y0) * (y1 - y0) + (x1 - x0) * (x1 - x0)
             ) / _startTouchDistance;
 
             // Translation:
@@ -6743,21 +6757,13 @@ if (typeof exports !== 'undefined') {
         ratio = 1 / _settings('doubleClickZoomingRatio');
 
         pos = position(e.touches[0]);
-        _self.dispatchEvent('doubleclick', {
-          x: pos.x - sigma.utils.getWidth(e) / 2,
-          y: pos.y - sigma.utils.getHeight(e) / 2,
-          clientX: e.clientX,
-          clientY: e.clientY,
-          ctrlKey: e.ctrlKey,
-          metaKey: e.metaKey,
-          altKey: e.altKey,
-          shiftKey: e.shiftKey
-        });
+        _self.dispatchEvent('doubleclick',
+          sigma.utils.mouseCoords(e, pos.x, pos.y));
 
         if (_settings('doubleClickEnabled')) {
           pos = _camera.cameraPosition(
-            pos.x - sigma.utils.getWidth(e) / 2,
-            pos.y - sigma.utils.getHeight(e) / 2,
+            pos.x - sigma.utils.getCenter(e).x,
+            pos.y - sigma.utils.getCenter(e).y,
             true
           );
 
@@ -7144,13 +7150,7 @@ if (typeof exports !== 'undefined') {
     var k,
         oldWidth = this.width,
         oldHeight = this.height,
-        pixelRatio = 1;
-        // TODO:
-        // *****
-        // This pixelRatio is the solution to display with the good definition
-        // on canvases on Retina displays (ie oversampling). Unfortunately, it
-        // has a huge performance cost...
-        //  > pixelRatio = window.devicePixelRatio || 1;
+        pixelRatio = sigma.utils.getPixelRatio();
 
     if (w !== undefined && h !== undefined) {
       this.width = w;
@@ -7187,11 +7187,9 @@ if (typeof exports !== 'undefined') {
    * @return {sigma.renderers.canvas} Returns the instance itself.
    */
   sigma.renderers.canvas.prototype.clear = function() {
-    var k;
-
-    for (k in this.domElements)
-      if (this.domElements[k].tagName === 'CANVAS')
-        this.domElements[k].width = this.domElements[k].width;
+    for (var k in this.contexts) {
+      this.contexts[k].clearRect(0, 0, this.width, this.height);
+    }
 
     return this;
   };
@@ -7306,6 +7304,9 @@ if (typeof exports !== 'undefined') {
     Object.defineProperty(this, 'edgeFloatArrays', {
       value: {}
     });
+    Object.defineProperty(this, 'edgeIndicesArrays', {
+      value: {}
+    });
 
     // Initialize the DOM elements:
     if (this.settings(options, 'batchEdgesDrawing')) {
@@ -7369,7 +7370,9 @@ if (typeof exports !== 'undefined') {
         type,
         renderer,
         graph = this.graph,
-        options = sigma.utils.extend(options, this.options);
+        options = sigma.utils.extend(options, this.options),
+        defaultEdgeType = this.settings(options, 'defaultEdgeType'),
+        defaultNodeType = this.settings(options, 'defaultNodeType');
 
     // Empty float arrays:
     for (k in this.nodeFloatArrays)
@@ -7378,9 +7381,12 @@ if (typeof exports !== 'undefined') {
     for (k in this.edgeFloatArrays)
       delete this.edgeFloatArrays[k];
 
+    for (k in this.edgeIndicesArrays)
+      delete this.edgeIndicesArrays[k];
+
     // Sort edges and nodes per types:
     for (a = graph.edges(), i = 0, l = a.length; i < l; i++) {
-      type = a[i].type || this.settings(options, 'defaultEdgeType');
+      type = a[i].type || defaultEdgeType;
       k = (type && sigma.webgl.edges[type]) ? type : 'def';
 
       if (!this.edgeFloatArrays[k])
@@ -7392,7 +7398,7 @@ if (typeof exports !== 'undefined') {
     }
 
     for (a = graph.nodes(), i = 0, l = a.length; i < l; i++) {
-      type = a[i].type || this.settings(options, 'defaultNodeType');
+      type = a[i].type || defaultNodeType;
       k = (type && sigma.webgl.nodes[type]) ? type : 'def';
 
       if (!this.nodeFloatArrays[k])
@@ -7406,12 +7412,14 @@ if (typeof exports !== 'undefined') {
     // Push edges:
     for (k in this.edgeFloatArrays) {
       renderer = sigma.webgl.edges[k];
+      a = this.edgeFloatArrays[k].edges;
 
-      for (a = this.edgeFloatArrays[k].edges, i = 0, l = a.length; i < l; i++) {
-        if (!this.edgeFloatArrays[k].array)
-          this.edgeFloatArrays[k].array = new Float32Array(
-            a.length * renderer.POINTS * renderer.ATTRIBUTES
-          );
+      // Creating the necessary arrays
+      this.edgeFloatArrays[k].array = new Float32Array(
+        a.length * renderer.POINTS * renderer.ATTRIBUTES
+      );
+
+      for (i = 0, l = a.length; i < l; i++) {
 
         // Just check that the edge and both its extremities are visible:
         if (
@@ -7429,13 +7437,24 @@ if (typeof exports !== 'undefined') {
             this.settings
           );
       }
+
+      if (typeof renderer.computeIndices === 'function')
+        this.edgeIndicesArrays[k] = renderer.computeIndices(
+          this.edgeFloatArrays[k].array
+        );
     }
 
     // Push nodes:
     for (k in this.nodeFloatArrays) {
       renderer = sigma.webgl.nodes[k];
+      a = this.nodeFloatArrays[k].nodes;
 
-      for (a = this.nodeFloatArrays[k].nodes, i = 0, l = a.length; i < l; i++) {
+      // Creating the necessary arrays
+      this.nodeFloatArrays[k].array = new Float32Array(
+        a.length * renderer.POINTS * renderer.ATTRIBUTES
+      );
+
+      for (i = 0, l = a.length; i < l; i++) {
         if (!this.nodeFloatArrays[k].array)
           this.nodeFloatArrays[k].array = new Float32Array(
             a.length * renderer.POINTS * renderer.ATTRIBUTES
@@ -7523,6 +7542,7 @@ if (typeof exports !== 'undefined') {
               arr,
               end,
               start,
+              indices,
               renderer,
               batchSize,
               currentProgram;
@@ -7536,6 +7556,7 @@ if (typeof exports !== 'undefined') {
           i = 0;
           renderer = sigma.webgl.edges[a[i]];
           arr = this.edgeFloatArrays[a[i]].array;
+          indices = this.edgeIndicesArrays[a[i]];
           start = 0;
           end = Math.min(
             start + batchSize * renderer.POINTS,
@@ -7564,7 +7585,8 @@ if (typeof exports !== 'undefined') {
                     'webglOversamplingRatio'
                   ),
                   start: start,
-                  count: end - start
+                  count: end - start,
+                  indicesData: indices
                 }
               );
             }
@@ -7622,7 +7644,8 @@ if (typeof exports !== 'undefined') {
                 width: this.width,
                 height: this.height,
                 ratio: this.camera.ratio,
-                scalingRatio: this.settings(options, 'webglOversamplingRatio')
+                scalingRatio: this.settings(options, 'webglOversamplingRatio'),
+                indicesData: this.edgeIndicesArrays[k]
               }
             );
           }
@@ -7753,7 +7776,8 @@ if (typeof exports !== 'undefined') {
   sigma.renderers.webgl.prototype.resize = function(w, h) {
     var k,
         oldWidth = this.width,
-        oldHeight = this.height;
+        oldHeight = this.height,
+        pixelRatio = sigma.utils.getPixelRatio();
 
     if (w !== undefined && h !== undefined) {
       this.width = w;
@@ -7774,8 +7798,11 @@ if (typeof exports !== 'undefined') {
         if (this.domElements[k].tagName.toLowerCase() === 'canvas') {
           // If simple 2D canvas:
           if (this.contexts[k] && this.contexts[k].scale) {
-            this.domElements[k].setAttribute('width', w + 'px');
-            this.domElements[k].setAttribute('height', h + 'px');
+            this.domElements[k].setAttribute('width', (w * pixelRatio) + 'px');
+            this.domElements[k].setAttribute('height', (h * pixelRatio) + 'px');
+
+            if (pixelRatio !== 1)
+              this.contexts[k].scale(pixelRatio, pixelRatio);
           } else {
             this.domElements[k].setAttribute(
               'width',
@@ -7809,12 +7836,7 @@ if (typeof exports !== 'undefined') {
    * @return {sigma.renderers.webgl} Returns the instance itself.
    */
   sigma.renderers.webgl.prototype.clear = function() {
-    var k;
-
-    for (k in this.domElements)
-      if (this.domElements[k].tagName === 'CANVAS')
-        this.domElements[k].width = this.domElements[k].width;
-
+    this.contexts.labels.clearRect(0, 0, this.width, this.height);
     this.contexts.nodes.clear(this.contexts.nodes.COLOR_BUFFER_BIT);
     this.contexts.edges.clear(this.contexts.edges.COLOR_BUFFER_BIT);
 
@@ -8791,7 +8813,20 @@ if (typeof exports !== 'undefined') {
           'varying vec4 color;',
 
           'void main(void) {',
-            'gl_FragColor = color;',
+            'float border = 0.01;',
+            'float radius = 0.5;',
+
+            'vec4 color0 = vec4(0.0, 0.0, 0.0, 0.0);',
+            'vec2 m = gl_PointCoord - vec2(0.5, 0.5);',
+            'float dist = radius - sqrt(m.x * m.x + m.y * m.y);',
+
+            'float t = 0.0;',
+            'if (dist > border)',
+              't = 1.0;',
+            'else if (dist > 0.0)',
+              't = dist / border;',
+
+            'gl_FragColor = mix(color0, color, t);',
           '}'
         ].join('\n'),
         gl.FRAGMENT_SHADER
@@ -9842,64 +9877,6 @@ if (typeof exports !== 'undefined') {
   sigma.utils.pkg('sigma.canvas.edges');
 
   /**
-   * This edge renderer will display edges as curves.
-   *
-   * @param  {object}                   edge         The edge object.
-   * @param  {object}                   source node  The edge source node.
-   * @param  {object}                   target node  The edge target node.
-   * @param  {CanvasRenderingContext2D} context      The canvas context.
-   * @param  {configurable}             settings     The settings function.
-   */
-  sigma.canvas.edges.curve = function(edge, source, target, context, settings) {
-    var color = edge.color,
-        prefix = settings('prefix') || '',
-        size = edge[prefix + 'size'] || 1,
-        edgeColor = settings('edgeColor'),
-        defaultNodeColor = settings('defaultNodeColor'),
-        defaultEdgeColor = settings('defaultEdgeColor'),
-        cp = {},
-        sSize = source[prefix + 'size'],
-        sX = source[prefix + 'x'],
-        sY = source[prefix + 'y'],
-        tX = target[prefix + 'x'],
-        tY = target[prefix + 'y'];
-
-    cp = (source.id === target.id) ?
-      sigma.utils.getSelfLoopControlPoints(sX, sY, sSize) :
-      sigma.utils.getQuadraticControlPoint(sX, sY, tX, tY);
-
-    if (!color)
-      switch (edgeColor) {
-        case 'source':
-          color = source.color || defaultNodeColor;
-          break;
-        case 'target':
-          color = target.color || defaultNodeColor;
-          break;
-        default:
-          color = defaultEdgeColor;
-          break;
-      }
-
-    context.strokeStyle = color;
-    context.lineWidth = size;
-    context.beginPath();
-    context.moveTo(sX, sY);
-    if (source.id === target.id) {
-      context.bezierCurveTo(cp.x1, cp.y1, cp.x2, cp.y2, tX, tY);
-    } else {
-      context.quadraticCurveTo(cp.x, cp.y, tX, tY);
-    }
-    context.stroke();
-  };
-})();
-
-;(function() {
-  'use strict';
-
-  sigma.utils.pkg('sigma.canvas.edges');
-
-  /**
    * This edge renderer will display edges as arrows going from the source node
    *
    * @param  {object}                   edge         The edge object.
@@ -9948,95 +9925,6 @@ if (typeof exports !== 'undefined') {
       aX,
       aY
     );
-    context.stroke();
-
-    context.fillStyle = color;
-    context.beginPath();
-    context.moveTo(aX + vX, aY + vY);
-    context.lineTo(aX + vY * 0.6, aY - vX * 0.6);
-    context.lineTo(aX - vY * 0.6, aY + vX * 0.6);
-    context.lineTo(aX + vX, aY + vY);
-    context.closePath();
-    context.fill();
-  };
-})();
-
-;(function() {
-  'use strict';
-
-  sigma.utils.pkg('sigma.canvas.edges');
-
-  /**
-   * This edge renderer will display edges as curves with arrow heading.
-   *
-   * @param  {object}                   edge         The edge object.
-   * @param  {object}                   source node  The edge source node.
-   * @param  {object}                   target node  The edge target node.
-   * @param  {CanvasRenderingContext2D} context      The canvas context.
-   * @param  {configurable}             settings     The settings function.
-   */
-  sigma.canvas.edges.curvedArrow =
-    function(edge, source, target, context, settings) {
-    var color = edge.color,
-        prefix = settings('prefix') || '',
-        edgeColor = settings('edgeColor'),
-        defaultNodeColor = settings('defaultNodeColor'),
-        defaultEdgeColor = settings('defaultEdgeColor'),
-        cp = {},
-        size = edge[prefix + 'size'] || 1,
-        tSize = target[prefix + 'size'],
-        sX = source[prefix + 'x'],
-        sY = source[prefix + 'y'],
-        tX = target[prefix + 'x'],
-        tY = target[prefix + 'y'],
-        aSize = Math.max(size * 2.5, settings('minArrowSize')),
-        d,
-        aX,
-        aY,
-        vX,
-        vY;
-
-    cp = (source.id === target.id) ?
-      sigma.utils.getSelfLoopControlPoints(sX, sY, tSize) :
-      sigma.utils.getQuadraticControlPoint(sX, sY, tX, tY);
-
-    if (source.id === target.id) {
-      d = Math.sqrt(Math.pow(tX - cp.x1, 2) + Math.pow(tY - cp.y1, 2));
-      aX = cp.x1 + (tX - cp.x1) * (d - aSize - tSize) / d;
-      aY = cp.y1 + (tY - cp.y1) * (d - aSize - tSize) / d;
-      vX = (tX - cp.x1) * aSize / d;
-      vY = (tY - cp.y1) * aSize / d;
-    }
-    else {
-      d = Math.sqrt(Math.pow(tX - cp.x, 2) + Math.pow(tY - cp.y, 2));
-      aX = cp.x + (tX - cp.x) * (d - aSize - tSize) / d;
-      aY = cp.y + (tY - cp.y) * (d - aSize - tSize) / d;
-      vX = (tX - cp.x) * aSize / d;
-      vY = (tY - cp.y) * aSize / d;
-    }
-
-    if (!color)
-      switch (edgeColor) {
-        case 'source':
-          color = source.color || defaultNodeColor;
-          break;
-        case 'target':
-          color = target.color || defaultNodeColor;
-          break;
-        default:
-          color = defaultEdgeColor;
-          break;
-      }
-
-    context.strokeStyle = color;
-    context.lineWidth = size;
-    context.beginPath();
-    context.moveTo(sX, sY);
-    if (source.id === target.id) {
-      context.bezierCurveTo(cp.x2, cp.y2, cp.x1, cp.y1, aX, aY);
-    } else {
-      context.quadraticCurveTo(cp.x, cp.y, aX, aY);
-    }
     context.stroke();
 
     context.fillStyle = color;
@@ -12017,14 +11905,13 @@ if (typeof exports !== 'undefined') {
     });
 
     function draw() {
-      // Clear self.contexts.hover:
-      self.contexts.hover.canvas.width = self.contexts.hover.canvas.width;
 
       var k,
           source,
           target,
           hoveredNode,
           hoveredEdge,
+          c = self.contexts.hover.canvas,
           defaultNodeType = self.settings('defaultNodeType'),
           defaultEdgeType = self.settings('defaultEdgeType'),
           nodeRenderers = sigma.canvas.hovers,
@@ -12033,6 +11920,9 @@ if (typeof exports !== 'undefined') {
           embedSettings = self.settings.embedObjects({
             prefix: prefix
           });
+
+      // Clear self.contexts.hover:
+      self.contexts.hover.clearRect(0, 0, c.width, c.height);
 
       // Node render: single hover
       if (
