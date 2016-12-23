@@ -203,7 +203,7 @@ $( document ).ready(function() {
 		});
 
 
-		$(".left-close").click(function(evt) {
+		$("#attributepane .left-close").click(function(evt) {
 			s.graph.nodes().forEach(function(n) {
 				emph(n);
 			});
