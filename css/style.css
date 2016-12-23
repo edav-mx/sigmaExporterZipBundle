@@ -3,6 +3,18 @@ padding: 0px;
 margin: 0px;
 }
 
+.cf:before, .cf:after {
+	content: "";
+	display: table;
+}
+
+.cf:after {
+	clear: both;
+}
+
+.cf {
+	zoom: 1;
+}
 
 #graph-container {
 	top: 0;
@@ -355,3 +367,6 @@ color: #000;
 }​
 
 /*end right side attributepane*/
+
+
+
