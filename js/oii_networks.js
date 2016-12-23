@@ -302,6 +302,28 @@ $( document ).ready(function() {
 			s.refresh();
 			highlightNodeState = false;
 		});
+
+		$("#zoom").find("div.z").each(function () {
+        	var a = $(this),
+            b = a.attr("rel");
+        	
+        	a.click(function (e) {
+				if (b == "center") {
+					sigma.utils.zoomTo(s.camera,0,0,10);
+				} else {
+		        	var pos = s.camera.cameraPosition(
+            			sigma.utils.getX(e) - sigma.utils.getCenter(e).x,
+            			sigma.utils.getY(e) - sigma.utils.getCenter(e).y,
+            			true
+          			);
+
+					var ratio = oii.config.sigma.settings.doubleClickZoomingRatio;
+          			sigma.utils.zoomTo(s.camera, pos.x, pos.y, ("in" == b ? 1 / ratio  : ratio) );		
+				}
+
+        	});
+    	});
+
 	
 		//Populate the group selection box
 		var cluster_html=Array(s.clusters.length);
