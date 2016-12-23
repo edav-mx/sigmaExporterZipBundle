@@ -28,22 +28,32 @@
   },
   "sigma": {
     "settings": {
-      "drawNodes": true,
-      "defaultEdgeType": "line",
-      "maxEdgeSize": 1,
-      "drawEdgeLabels": true,
-      "minNodeSize": 1,
+            
       "minRatio": 0.75,
       "sideMargin": 100,
       "doubleClickZoomingRatio": 1.7,
-      "minEdgeSize": 0.2,
-      "minArrowSize": 10.0,
       "maxRatio": 20,
+      "zoomingRatio": 1.1,
+      
+      "drawNodes": true,
       "drawLabels": true,
       "labelThreshold": 6,
+      "minNodeSize": 1,
       "maxNodeSize": 15,
-      "zoomingRatio": 1.1,
-      "drawEdges": true
+      "enableHovering": true,
+      "singleHover": false,
+
+      "drawEdges": true,
+      "defaultEdgeType": "curvedArrow",
+      "minEdgeSize": 0.2,
+      "maxEdgeSize": 1,
+      "drawEdgeLabels": true,
+      "enableEdgeHovering": false,
+      "edgeHoverColor": "edge",
+      "defaultEdgeHoverColor": "#000",
+      "edgeHoverSizeRatio": 1,
+      "edgeHoverExtremities": false,
+      "minArrowSize": 10.0
     }
   }
 }
