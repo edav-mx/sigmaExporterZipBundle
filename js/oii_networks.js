@@ -127,7 +127,7 @@ $( document ).ready(function() {
 
 			s.graph.nodes().forEach(function(n) {
 				if (toKeep[n.id]) {
-					emph(n);
+					itemAction(n, "activate", "click");
 					if (nodeObj===false && nodeId==n.id) {
 						//TODO: Force label of this node to be printed (this is focal node)
 						//Not possible? -- see force_labels.js
@@ -147,15 +147,15 @@ $( document ).ready(function() {
 						
 					}
 				} else {
-					unemph(n);
+					itemAction(n, "deactivate", "click");
 				}
 			});
 
 			s.graph.edges().forEach(function(e) {
 				if (toKeep[e.source] && toKeep[e.target]) {
-					emph(e);
+					itemAction(e, "activate", "click");
 				} else {
-					unemph(e);
+					itemAction(e, "deactivate", "click");
 				}
 			});
 
@@ -225,10 +225,10 @@ $( document ).ready(function() {
 
 		$("#attributepane .left-close").click(function(evt) {
 			s.graph.nodes().forEach(function(n) {
-				emph(n);
+				itemAction(n, "activate", "click");
 			});
 			s.graph.edges().forEach(function(e) {
-		  		emph(e);
+		  		itemAction(e, "activate", "click");
 			});
 			s.refresh();
 			$("#attributepane").delay(400).animate({width:'hide'},350);
@@ -263,20 +263,20 @@ $( document ).ready(function() {
 			var results=[];
 			s.graph.nodes().forEach(function(n) {
 				if (n.originalColor==cluster) {
-					emph(n);
+					itemAction(n, "activate", "click");
 					toKeep[n.id]=true;
 					results.push('<li class="node" data-id="'+n.id+'"><a href="javascript:void(0);">'+n.label+'</a></li>');
 
 				} else {
-					unemph(n);
+					itemAction(n, "deactivate", "click");
 				}
 			});
 
 			s.graph.edges().forEach(function(e) {
 				if (toKeep[e.source] && toKeep[e.target])
-					emph(e);
+					itemAction(e, "activate", "click");
 				else
-					unemph(e);
+					itemAction(e, "deactivate", "click");
 			});
 			s.refresh();
 		
