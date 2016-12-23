@@ -310,7 +310,11 @@ $( document ).ready(function() {
         	
         	a.click(function (e) {
 				if (b == "center") {
-					sigma.utils.zoomTo(s.camera,0,0,10);
+					sigma.misc.animation.camera(
+  						s.camera,
+  						{ ratio: 1, x: 0, y: 0, angle: 0 },
+  						{ duration: 150 }
+					);
 				} else {
 		        	var pos = s.camera.cameraPosition(
             			sigma.utils.getX(e) - sigma.utils.getCenter(e).x,
@@ -319,7 +323,7 @@ $( document ).ready(function() {
           			);
 
 					var ratio = oii.config.sigma.settings.doubleClickZoomingRatio;
-          			sigma.utils.zoomTo(s.camera, pos.x, pos.y, ("in" == b ? 1 / ratio  : ratio) );		
+          			sigma.utils.zoomTo(s.camera, pos.x, pos.y, ("in" == b ? 1 / ratio  : ratio), { duration: 150 });		
 				}
 
         	});
