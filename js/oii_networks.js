@@ -135,7 +135,7 @@ $( document ).ready(function() {
 			
 		
 		
-		var highlightNode=function(nodeId) {
+		var highlightNode=function(nodeId, showInfoPane=true) {
 			var toKeep = s.graph.neighbors(nodeId);
 			toKeep[nodeId] = true; //SAH -- example code had entire node object here
 			
@@ -182,61 +182,63 @@ $( document ).ready(function() {
 
 			// Always call refresh after modifying data
 			s.refresh();
+
+			if(showInfoPane) {
 			
-			var attr=new Array();
-			//attr.push("<dt>Label</dt><dd class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</dd>")
-			if (nodeObj["attributes"]) {
-				for (var key in nodeObj["attributes"]) {
-					attr.push("<dt>"+key+"</dt><dd>"+nodeObj["attributes"][key]+"</dd>")
+				var attr=new Array();
+				//attr.push("<dt>Label</dt><dd class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</dd>")
+				if (nodeObj["attributes"]) {
+					for (var key in nodeObj["attributes"]) {
+						attr.push("<dt>"+key+"</dt><dd>"+nodeObj["attributes"][key]+"</dd>")
+					}
 				}
-			}
-			
-			//Populate attributepane
-			var pane = $("#attributepane");
-			pane.find(".headertext").html("Node details");
-            if(groupByDirection) {
-                    pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl>");
-                    
-                    if(neighborsIn.length > 0) {
-                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><ul>"+neighborsIn.join("")+"</ul>");
-                    }
-                    else {
-                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><div>No incoming links</div>");
-                    }
-                    pane.find(".bodytext").html(pane.find(".bodytext").html() + "<div>&nbsp;</div>");
-                    if(neighborsOut.length > 0) {
-                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><ul>"+neighborsOut.join("")+"</ul>");
-                    }
-                    else {
-                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><div>No outgoing links</div>");
-                    }
-            }
-            else {
-                pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl><h2>Neighbors</h2><ul>"+neighbors.join("")+"</ul>");
-            }
-			
-			pane.delay(400).animate({width:'show'},350);
-	
-			$(".node").click(function() {
-				var nodeId=$(this).attr("data-id");
-				var renderer = s.renderers[0];
-				renderer.dispatchEvent('outNode', {node:s.graph.nodes(nodeId)});
-				highlightNode(nodeId);
-			});
-			
-			$(".node").hover(function() {
-					//Mouse in
-					var nodeId=$(this).attr("data-id");
-					var renderer = s.renderers[0];
-					renderer.dispatchEvent('overNode', {node:s.graph.nodes(nodeId)});
-				}, function() {
-					//Mouse out
+				
+				//Populate attributepane
+				var pane = $("#attributepane");
+				pane.find(".headertext").html("Node details");
+	            if(groupByDirection) {
+	                    pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl>");
+	                    
+	                    if(neighborsIn.length > 0) {
+	                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><ul>"+neighborsIn.join("")+"</ul>");
+	                    }
+	                    else {
+	                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><div>No incoming links</div>");
+	                    }
+	                    pane.find(".bodytext").html(pane.find(".bodytext").html() + "<div>&nbsp;</div>");
+	                    if(neighborsOut.length > 0) {
+	                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><ul>"+neighborsOut.join("")+"</ul>");
+	                    }
+	                    else {
+	                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><div>No outgoing links</div>");
+	                    }
+	            }
+	            else {
+	                pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl><h2>Neighbors</h2><ul>"+neighbors.join("")+"</ul>");
+	            }
+				
+				pane.delay(400).animate({width:'show'},350);
+		
+				$(".node").click(function() {
 					var nodeId=$(this).attr("data-id");
 					var renderer = s.renderers[0];
 					renderer.dispatchEvent('outNode', {node:s.graph.nodes(nodeId)});
-				}
-			);
-
+					highlightNode(nodeId);
+				});
+				
+				$(".node").hover(function() {
+						//Mouse in
+						var nodeId=$(this).attr("data-id");
+						var renderer = s.renderers[0];
+						renderer.dispatchEvent('overNode', {node:s.graph.nodes(nodeId)});
+					}, function() {
+						//Mouse out
+						var nodeId=$(this).attr("data-id");
+						var renderer = s.renderers[0];
+						renderer.dispatchEvent('outNode', {node:s.graph.nodes(nodeId)});
+					}
+				);
+			}
 		};
 
 		var hoverNode=function(nodeId, showInfoPane=false) {
