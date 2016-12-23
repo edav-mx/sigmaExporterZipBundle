@@ -196,26 +196,27 @@ $( document ).ready(function() {
 				//Populate attributepane
 				var pane = $("#attributepane");
 				pane.find(".headertext").html("Node details");
-	            if(groupByDirection) {
-	                    pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl>");
-	                    
-	                    if(neighborsIn.length > 0) {
-	                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><ul>"+neighborsIn.join("")+"</ul>");
-	                    }
-	                    else {
-	                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><div>No incoming links</div>");
-	                    }
-	                    pane.find(".bodytext").html(pane.find(".bodytext").html() + "<div>&nbsp;</div>");
-	                    if(neighborsOut.length > 0) {
-	                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><ul>"+neighborsOut.join("")+"</ul>");
-	                    }
-	                    else {
-	                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><div>No outgoing links</div>");
-	                    }
-	            }
-	            else {
-	                pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl><h2>Neighbors</h2><ul>"+neighbors.join("")+"</ul>");
-	            }
+	            
+                pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl>"+'<h3>Neighbors:</h3><div>&nbsp;</div>');
+                
+                if(groupByDirection) {
+                    if(neighborsIn.length > 0) {
+                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors (" + neighborsIn.length + ") </h4><ul>"+neighborsIn.join("")+"</ul>");
+                    }
+                    else {
+                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Incoming neighbors</h4><div>No incoming links</div>");
+                    }
+                    pane.find(".bodytext").html(pane.find(".bodytext").html() + "<div>&nbsp;</div>");
+                    if(neighborsOut.length > 0) {
+                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors (" + neighborsOut.length + ") </h4><ul>"+neighborsOut.join("")+"</ul>");
+                    }
+                    else {
+                        pane.find(".bodytext").html(pane.find(".bodytext").html() + "<h4>Outgoing neighbors</h4><div>No outgoing links</div>");
+                    }
+            	}
+            	else {
+                	pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl><h2>Neighbors:</h2><ul>"+neighbors.join("")+"</ul>");
+            	}
 				
 				pane.delay(400).animate({width:'show'},350);
 		
