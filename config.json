@@ -21,7 +21,8 @@
     "search": true,
     "groupSelectorAttribute": "color",
     "hoverBehavior": "dim",
-    "clickBehavior": "default"
+    "clickBehavior": "default",
+    "dimColor": "#aaa"
   },
   "informationPanel": {
     "groupByEdgeDirection": true,

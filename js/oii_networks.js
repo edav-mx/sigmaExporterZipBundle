@@ -119,7 +119,7 @@ $( document ).ready(function() {
 			switch (state) {
 				case 'deactivate': 
 					if(behaviour==="dim") {
-						obj.color = '#aaa';
+						obj.color = oii.config.features.dimColor;
 					} else {
 						obj.hidden = true;
 					}
@@ -514,7 +514,10 @@ $( document ).ready(function() {
 			$("#attributeselect").hide();
 		}
 	   
-	
+		// Set hover and click dim color
+		if (!config.features.dimColor) {
+			config.features.dimColor = "#aaa";
+		}
 	});
 	
 	
