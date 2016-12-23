@@ -369,4 +369,25 @@ color: #000;
 /*end right side attributepane*/
 
 
+/*Copyright*/
+
+#copyright {
+	margin:0 auto;	
+	position: fixed;
+	right: 40px;
+	bottom: 25px;
+	z-index:0;
+}
+
+#copyright a {
+color: #000;
+}
+
+#copyright .explanation {
+display: none;
+}
+
+/*end copyright*/
+
+
 
