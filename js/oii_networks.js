@@ -21,7 +21,7 @@ $( document ).ready(function() {
 	
 	// Add a method to the graph model that returns an
 	// object with every neighbors of a node inside:
-	sigma.classes.graph.addMethod('neighbors', function(nodeId) {
+	sigma.classes.graph.addMethod('neighbors', function(nodeId, filterByActive=false) {
 		var k, kOut, kIn,
 			neighbors = {},
 			index = this.allNeighborsIndex[nodeId] || {};
@@ -30,6 +30,9 @@ $( document ).ready(function() {
         //var indexIn = this.inNeighborsIndex[nodeId];
                                   
         for (k in index) {
+        	if( filterByActive && this.nodesIndex[k].hidden == true ) {
+        		continue;
+        	}
 		    neighbors[k] = this.nodesIndex[k];
             var connectionType = "Incoming";
             
@@ -76,6 +79,22 @@ $( document ).ready(function() {
 		s.graph.edges().forEach(function(e) {
 			e.originalColor = e.color;
 		});
+
+		var resetItems = function (action, filterByActive=false) {
+			s.graph.nodes().forEach(function(n) {
+				if( filterByActive && n.hidden == true ) {
+        			return;
+        		}
+				itemAction(n,"activate",action);
+			});
+			s.graph.edges().forEach(function(e) {
+				if( filterByActive && e.hidden == true ) {
+        			return;
+        		}
+		  		itemAction(e,"activate",action);
+			});
+			s.refresh();
+		};
         
 
 		// When a node is clicked or hover, we check for each node
@@ -124,6 +143,8 @@ $( document ).ready(function() {
             var neighborsIn=new Array();
             var neighborsOut=new Array();
 			var nodeObj=false;
+			highlightNodeState = true;
+			highlightedNode = nodeId;
 
 			s.graph.nodes().forEach(function(n) {
 				if (toKeep[n.id]) {
@@ -217,6 +238,56 @@ $( document ).ready(function() {
 			);
 
 		};
+
+		var hoverNode=function(nodeId, showInfoPane=false) {
+			var toKeep = s.graph.neighbors(nodeId,highlightNodeState);
+			toKeep[nodeId] = true; //SAH -- example code had entire node object here
+			
+			var neighbors=new Array(toKeep.length);
+            var neighborsIn=new Array();
+            var neighborsOut=new Array();
+			var nodeObj=false;
+
+			s.graph.nodes().forEach(function(n) {
+				if (toKeep[n.id]) {
+					itemAction(n, "activate", "hover");
+					if (nodeObj===false && nodeId==n.id) {
+						//TODO: Force label of this node to be printed (this is focal node)
+						//Not possible? -- see force_labels.js
+						nodeObj=n;
+					} 
+				} else {
+					itemAction(n, "deactivate", "hover");
+				}
+			});
+
+			s.graph.edges().forEach(function(e) {
+				if (toKeep[e.source] && toKeep[e.target]) {
+					itemAction(e, "activate", "hover");
+				} else {
+					itemAction(e, "deactivate", "hover");
+				}
+			});
+
+			// Always call refresh after modifying data
+			s.refresh();
+			
+
+		};
+
+		s.bind('overNode', function(e) {
+			//if(!highlightNodeState) {
+				hoverNode(e.data.node.id, false);		
+			//}
+		});
+
+		s.bind('outNode', function(e) {
+			if(highlightNodeState) {
+				highlightNode(highlightedNode, false);
+			} else {
+				resetItems("hover",highlightNodeState);
+			}
+		}); 
 		
 		s.bind('clickNode', function(e) {
 			highlightNode(e.data.node.id);
@@ -231,6 +302,7 @@ $( document ).ready(function() {
 		  		itemAction(e, "activate", "click");
 			});
 			s.refresh();
+			highlightedNode = 0;
 			$("#attributepane").delay(400).animate({width:'hide'},350);
 		});
 	
@@ -342,7 +414,7 @@ $( document ).ready(function() {
 
 	}
 
-	var s;
+	var s, highlightNodeState = false, highlightedNode = 0;
 	oii.config('config.json', function(config) {
 		if (config["version"]!=="2.0") {
 			console.log("Bad config file version. Cannot proceede");
