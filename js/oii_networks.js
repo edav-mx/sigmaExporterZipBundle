@@ -295,15 +295,10 @@ $( document ).ready(function() {
 
 
 		$("#attributepane .left-close").click(function(evt) {
-			s.graph.nodes().forEach(function(n) {
-				itemAction(n, "activate", "click");
-			});
-			s.graph.edges().forEach(function(e) {
-		  		itemAction(e, "activate", "click");
-			});
-			s.refresh();
-			highlightedNode = 0;
 			$("#attributepane").delay(400).animate({width:'hide'},350);
+			resetItems('click');
+			s.refresh();
+			highlightNodeState = false;
 		});
 	
 		//Populate the group selection box
