@@ -78,21 +78,41 @@ $( document ).ready(function() {
 		});
         
 
-		// When a node is clicked, we check for each node
+		// When a node is clicked or hover, we check for each node
 		// if it is a neighbor of the clicked one. If not,
 		// we set its color as grey, and else, it takes its
 		// original color.
 		// We do the same for the edges, and we only keep
 		// edges that have both extremities colored.
-		
-		var emph=function (obj) {obj.hidden=false;};
-		var unemph=function (obj) {obj.hidden=true;};
-		if (oii.config.features.clickBehavior) {
-			if (oii.config.features.clickBehavior==="dim") {
-				emph=function (obj) {obj.color = obj.originalColor;};
-				unemph=function (obj) {obj.color = '#aaa';};
+		var itemAction = function (obj,state,action) {
+
+			var behaviour = "";
+			if( action == "hover") {
+				if(oii.config.features.hoverBehavior && oii.config.features.hoverBehavior==="dim") {
+					behaviour = "dim";
+				}
+			} else {
+				if (oii.config.features.clickBehavior && oii.config.features.clickBehavior==="dim") {
+					behaviour = "dim";
+				}
 			}
-		}
+
+			switch (state) {
+				case 'deactivate': 
+					if(behaviour==="dim") {
+						obj.color = '#aaa';
+					} else {
+						obj.hidden = true;
+					}
+					break;
+				case 'activate':
+						obj.color = obj.originalColor;
+						obj.hidden = false;
+					break;
+				default: 
+					break;
+			}
+		};
 			
 		
 		
