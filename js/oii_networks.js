@@ -405,9 +405,9 @@ $( document ).ready(function() {
 				if (str.length>=3) {
 					//Do a search!
 					console.log("Searching for " + str);
-					var regex = new RegExp(str,"gi"); //global, case-insensitive
 					var results=new Array();
 					s.graph.nodes().forEach(function(n) {
+						var regex = new RegExp(str,"gi"); //global, case-insensitive
 						if (regex.test(n.label)) {
 							//results[n.id]=n.label;
 							results.push('<li class="node" data-id="'+n.id+'"><a href="javascript:void(0);">'+n.label+'</a></li>');
