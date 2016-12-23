@@ -335,7 +335,7 @@ color: #000;
 #attributepane h2 {
 	color: #000;
 	margin-bottom: 5px;
-	height: 14px;
+	/*height: 14px;*/
 	border-bottom: 1px solid #999;
 	padding: 10px 0 10px 0; /*t r b l*/
 	font-size:14px;
