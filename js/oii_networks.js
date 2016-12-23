@@ -203,9 +203,7 @@ $( document ).ready(function() {
 		});
 
 
-		// When the stage is clicked, we just color each
-		// node and edge with its original color.
-		s.bind('clickStage', function(e) {
+		$(".left-close").click(function(evt) {
 			s.graph.nodes().forEach(function(n) {
 				emph(n);
 			});
