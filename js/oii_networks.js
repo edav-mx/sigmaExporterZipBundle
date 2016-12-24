@@ -218,7 +218,7 @@ $( document ).ready(function() {
                 	pane.find(".bodytext").html("<h2 class=\"node\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl><h2>Neighbors:</h2><ul>"+neighbors.join("")+"</ul>");
             	}
 				
-				pane.delay(400).animate({width:'show'},350);
+				pane.animate({width:'show'},150);
 		
 				$(".node").click(function() {
 					var nodeId=$(this).attr("data-id");
@@ -298,7 +298,7 @@ $( document ).ready(function() {
 
 
 		$("#attributepane .left-close").click(function(evt) {
-			$("#attributepane").delay(400).animate({width:'hide'},350);
+			$("#attributepane").animate({width:'hide'},150);
 			resetItems('click');
 			s.refresh();
 			highlightNodeState = false;
