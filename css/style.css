@@ -203,39 +203,43 @@ margin-left: 5px;
 }
 
 #information {
-display: none;
-background: #fff;
-padding: 1px 10px 10px 10px;
+	display: none;
+    background: #bebebe;
+    border: 1px solid #000;
+    
+    /* Center with known width/height */
+    box-sizing: border-box; /* So we don't have to think about border/padding */
+    width: 280px;
+    height: 160px; /* You don't have to set the height - but it won't be 100% centered vertically */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: -50px 0 0 -140px; /* 50px = half of height, 140px = half of width */
+    
+    /* Center without knowing the width/height */
+    width: auto;
+    height: auto;
+    margin: 0;
+    transform: translateX(-50%) translateY(-50%); 
 }
 
-#information h3 {
-margin: 14px 0 4px 0;
+#information .text {
+	padding: 20px;
+	padding-top: 10px;
+	border-top: 1px solid #999;
 }
 
-#information p {
-margin: 0 0 4px 0;
-}
-
-#information .button {
-width: 14px;
-height: 14px;
-background-image: url('../images/sprite.png');
-border: 1px solid #999;
-display: inline-block;
-*display: inline;
-*zoom: 1;
-}
-
-#information .button span {
-display: none;
-}
-
-#information .button.plus {
-background-position: -91px -122px; 
-}
-
-#information .button.moins {
-background-position: -131px -122px;
+#information .closeButton {
+	background-image: url('../images/fancybox_sprite.png');
+	margin-left:-20px !important; 
+	z-index:99999;
+	cursor: pointer;
+	line-height:36px;
+	background-repeat: no-repeat;
+	font-weight: bold;
+	font-size:14px;
+	padding-left:41px;
+	margin-bottom:0;
 }
 
 /*Group selector*/

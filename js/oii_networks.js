@@ -481,7 +481,13 @@ $( document ).ready(function() {
 
 		// More information
 		if (config.text.more) {
-			$("#information").html(config.text.more);
+			$("#information .text").html(config.text.more);
+			$("a#informationLink").click(function() {
+				$("#information").show("slow");
+			});
+			$("#information .closeButton").click(function() {
+				$("#information").hide();
+			});
 		} else {
 			//hide more information link
 			$("#moreinformation").hide();
