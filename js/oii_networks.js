@@ -197,7 +197,7 @@ $( document ).ready(function() {
 				var pane = $("#attributepane");
 				pane.find(".headertext").html("Node details");
 	            
-                pane.find(".bodytext").html("<h2 class=\"node cf\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"klfdsjf sdkjflksd sdlkfj sdlkfj</h2><dl>"+attr.join("")+"</dl>"+'<h3>Neighbors:</h3><div>&nbsp;</div>');
+                pane.find(".bodytext").html("<h2 class=\"node cf\" data-id=\""+nodeObj.id+"\">"+nodeObj["label"]+"</h2><dl>"+attr.join("")+"</dl>"+'<div>&nbsp;</div><h3>Neighbors:</h3><div>&nbsp;</div>');
                 
                 if(groupByDirection) {
                     if(neighborsIn.length > 0) {
